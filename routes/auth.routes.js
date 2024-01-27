@@ -6,6 +6,7 @@ const mongoose = require("mongoose");
 const uploader = require("../middelwares/cloudinary.config");
 const router = express.Router();
 const saltRounds = 10;
+const { isAuthenticated } = require("./../middelwares/jwt.midelware");
 
 const isObjectEmpty = (objectName) => {
   return Object.keys(objectName).length === 0;
@@ -98,7 +99,10 @@ router.post("/login", (req, res, next) => {
       }
 
       // Compare the provided password with the one saved in the database
-      const passwordCorrect = bcryptjs.compareSync(password, foundUser.password);
+      const passwordCorrect = bcryptjs.compareSync(
+        password,
+        foundUser.password
+      );
 
       if (passwordCorrect) {
         // Deconstruct the user object to omit the password
@@ -120,10 +124,15 @@ router.post("/login", (req, res, next) => {
       }
     })
     .catch((err) => {
-        console.log(err)
-        res.status(500).json({ message: "Internal Server Error" })
+      console.log(err);
+      res.status(500).json({ message: "Internal Server Error" });
     });
-    
+});
+
+router.get("/verify", isAuthenticated, (req, res, next) => {
+  console.log("req.payload", req.payload);
+
+  res.status(200).json(req.payload);
 });
 
 module.exports = router;

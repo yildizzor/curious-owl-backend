@@ -1,3 +1,5 @@
+const { UnauthorizedError } = require("express-jwt");
+
 module.exports = (app) => {
   app.use((req, res, next) => {
     // this middleware runs whenever requested page is not available
@@ -11,11 +13,14 @@ module.exports = (app) => {
 
     // only render if the error ocurred before sending the response
     if (!res.headersSent) {
-      res
-        .status(500)
-        .json({
-          message: "Internal server error. Check the server console",
-        });
+      console.log(err);
+
+      if (err instanceof UnauthorizedError) {
+        res.status(err.status).json(err.inner);
+      }
+      res.status(500).json({
+        message: "Internal server error. Check the server console",
+      });
     }
   });
 };
