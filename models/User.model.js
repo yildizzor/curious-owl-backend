@@ -15,7 +15,10 @@ const userSchema = new Schema(
       required: [true, "Email is required."],
       unique: true,
       lowercase: true,
-      match: [/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/, "Email should consist '@' characters"],
+      match: [
+        /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/,
+        "Email should consist '@' characters",
+      ],
       trim: true,
     },
     password: {
@@ -30,6 +33,7 @@ const userSchema = new Schema(
 
     imageUrl: {
       type: String,
+      default: "/src/assets/avatar.png",
     },
 
     country: String,

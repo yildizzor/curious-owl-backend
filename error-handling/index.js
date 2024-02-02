@@ -15,7 +15,7 @@ module.exports = (app) => {
     if (!res.headersSent) {
       console.log(err);
 
-      if (err instanceof UnauthorizedError) {
+      if (err instanceof UnauthorizedError) { // If JWT is null(this throw unauthorizedError), JWT middelware returns null. 
         res.status(err.status).json(err.inner);
       }
       res.status(500).json({

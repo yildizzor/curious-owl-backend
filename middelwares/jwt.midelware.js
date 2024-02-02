@@ -16,7 +16,7 @@ function getTokenFromHeaders(req) {
     return token;
   }
 
-  return null;
+  return null; // If request is not successful, errors handlers will return the error to client. 
 }
 
 module.exports = {isAuthenticated};
