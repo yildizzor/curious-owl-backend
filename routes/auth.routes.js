@@ -40,7 +40,6 @@ router.post("/signup", uploader.single("imageUrl"), async (req, res, next) => {
 
       let profilePhoto;
       if (req.file) {
-        console.log(req.file);
         profilePhoto = req.file.path;
         console.log(req.file.path);
       }
@@ -49,7 +48,6 @@ router.post("/signup", uploader.single("imageUrl"), async (req, res, next) => {
 
         imageUrl: profilePhoto,
       });
-      console.log(req.body);
 
       newUser.password = hashedPassword;
       await newUser.save();
@@ -120,7 +118,7 @@ router.post("/login", (req, res, next) => {
         // Send the token as the response
         res.status(200).json({ authToken: authToken });
       } else {
-        res.status(401).json({ message: "Unable to authenticate the user" });
+        res.status(401).json({ message: "Email and password do not match" });
       }
     })
     .catch((err) => {

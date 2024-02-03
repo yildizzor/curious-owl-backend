@@ -15,8 +15,14 @@ module.exports = (app) => {
     if (!res.headersSent) {
       console.log(err);
 
-      if (err instanceof UnauthorizedError) { // If JWT is null(this throw unauthorizedError), JWT middelware returns null. 
+      if (err instanceof UnauthorizedError) {
+        // If JWT is null(this throw unauthorizedError), JWT middelware returns null.
         res.status(err.status).json(err.inner);
+      }
+      if (err.message) {
+        res.status(500).json({
+          message: err.message,
+        });
       }
       res.status(500).json({
         message: "Internal server error. Check the server console",
