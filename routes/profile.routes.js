@@ -4,11 +4,12 @@ const User = require("../models/User.model");
 const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const uploader = require("../middelwares/cloudinary.config");
+const { isAuthenticated } = require("../middelwares/jwt.midelware");
 const router = express.Router();
 const saltRounds = 10;
 
-router.put("/user", uploader.single("imageUrl"), async (req, res, next) => {
-  const errors = {};
+router.put("/user", isAuthenticated, uploader.single("imageUrl"), async (req, res, next) => {
+  const errorsOfUser = {};
   let { email, password, country } = req.body;
   console.log(req.body);
   try {
@@ -31,7 +32,7 @@ router.put("/user", uploader.single("imageUrl"), async (req, res, next) => {
         user.imageUrl = imageUrl;
       }
 
-      await user.save();  // User db model: pasword regex checked
+      await user.save(); // User db model: pasword regex checked
 
       if (password) {
         const salt = bcryptjs.genSaltSync(saltRounds);
@@ -61,13 +62,13 @@ router.put("/user", uploader.single("imageUrl"), async (req, res, next) => {
   } catch (err) {
     console.log(err);
     if (err instanceof mongoose.Error.ValidationError) {
-      Object.keys(err.errors).forEach((key) => {
-        errors[key] = err.errors[key].message;
+      Object.keys(err.errors).forEach((element) => {
+        errorsOfUser[element] = err.errors[element].message;
       });
-      res.status(400).json(errors);
+      res.status(400).json(errorsOfUser);
     } else {
-      errors.message = "Internal server error occurs";
-      res.status(500).json(errors);
+      errorsOfUser.message = "Internal server error occurs";
+      res.status(500).json(errorsOfUser);
     }
   }
 });
