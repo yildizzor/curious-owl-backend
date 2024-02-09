@@ -42,8 +42,7 @@ app.use("/api", booksRoutes);
 const eventsRoutes = require("./routes/event.routes.js");
 app.use("/api", eventsRoutes);
 
-const reviewRoutes = require("./routes/review.routes.js");
-app.use("/api", reviewRoutes);
+
 
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);

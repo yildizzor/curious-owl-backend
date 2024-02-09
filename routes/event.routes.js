@@ -34,4 +34,5 @@ router.get("/events", async (req, res, next) => {
     }
   }
 });
+
 module.exports = router;

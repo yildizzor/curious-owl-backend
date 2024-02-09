@@ -12,12 +12,6 @@ const reviewSchema = new Schema(
       enam: ["Concert", "Theater", "Museum", "Book", "Restaurant"],
     },
 
-    // date: {
-    //   type: Date,
-    //   default: Date.now,
-    //   required: true,
-    // },
-
     rating: {
       type: Number,
       required: true,
