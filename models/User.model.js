@@ -6,12 +6,9 @@ const userSchema = new Schema(
     name: {
       type: String,
       required: [true, "Name is required."],
-      lowercase: true,
       trim: true,
     },
 
-
-    
     email: {
       type: String,
       required: [true, "Email is required."],
@@ -39,7 +36,26 @@ const userSchema = new Schema(
     },
 
     country: String,
+
+    events: [
+      {
+        type: Schema.Types.ObjectId, // When I create an event, (concert._id) is pushed hier (or theater._id etc.)
+        refPath: "eventType",
+      },
+    ],
+    eventType: {
+      type: String,
+      enam: ["Concert", "Theater", "Museum", "Book", "Restaurant"],
+    },
+
+    reviews: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "Review",
+      },
+    ],
   },
+
   {
     // this second object adds extra properties: `createdAt` and `updatedAt`
     timestamps: true,

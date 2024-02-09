@@ -1,34 +1,29 @@
 const { Schema, model } = require("mongoose");
 
-const concertSchema = new Schema(
+const restaurantSchema = new Schema(
   {
     name: {
       type: String,
       unique: true,
-      required: [true, "Concert Name is required."],
+      required: [true, "Restaurant Name is required."],
       trim: true,
     },
 
-    soloistName: {
+    typeOfCuisine: {
       type: String,
-      required: [true, "Soloist Name is required."],
-      trim: true,
-    },
-    typeOfMusic: {
-      type: String,
-      required: [true, "Type of Music is required."],
+      required: [true, "Type of Cuisine is required."],
       trim: true,
     },
 
-    concertPlace: {
+    restaurantPlace: {
       type: String,
       required: [true, "Place is required."],
+
       trim: true,
     },
-    date: {
+    establishDate: {
       type: Date,
-      required: [true, "Date is required."],
-
+      required: [true, "Establish Date is required."],
       trim: true,
     },
     ageLimit: {
@@ -60,13 +55,8 @@ const concertSchema = new Schema(
   }
 );
 
-concertSchema.pre("save", function (next) {
-  const properties = [
-    "name",
-    "soloistName",
-    "typeOfMusic",
-    "concertPlace",
-  ];
+restaurantSchema.pre("save", function (next) {
+  const properties = ["name", "typeOfCuisine", "restaurantPlace"];
   for (element of properties) {
     const words = this[element].split(" "); // This is a middelware for database. It makes name and surname with uppercase for database.
     this[element] = words
@@ -76,6 +66,6 @@ concertSchema.pre("save", function (next) {
 
   next();
 });
-const Concert = model("Concert", concertSchema);
+const Restaurant = model("Restaurant", restaurantSchema);
 
-module.exports = Concert;
+module.exports = Restaurant;

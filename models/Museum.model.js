@@ -1,40 +1,36 @@
 const { Schema, model } = require("mongoose");
 
-const concertSchema = new Schema(
+const museumSchema = new Schema(
   {
     name: {
       type: String,
       unique: true,
-      required: [true, "Concert Name is required."],
+      required: [true, "Museum Name is required."],
       trim: true,
     },
 
-    soloistName: {
+    typeOfSubject: {
       type: String,
-      required: [true, "Soloist Name is required."],
-      trim: true,
-    },
-    typeOfMusic: {
-      type: String,
-      required: [true, "Type of Music is required."],
+      required: [true, "Subject is required."],
       trim: true,
     },
 
-    concertPlace: {
+    museumPlace: {
       type: String,
       required: [true, "Place is required."],
       trim: true,
     },
-    date: {
-      type: Date,
-      required: [true, "Date is required."],
-
+    builtBy: {
+      type: String,
+      required: [true, "Constructor(s) is required."],
       trim: true,
     },
-    ageLimit: {
-      type: Number,
-      required: [true, "Age limit is required."],
+    builtDate: {
+      type: String,
+      required: [true, "Built Date is required."],
+      trim: true,
     },
+
     imageUrl: {
       type: String,
     },
@@ -60,13 +56,9 @@ const concertSchema = new Schema(
   }
 );
 
-concertSchema.pre("save", function (next) {
-  const properties = [
-    "name",
-    "soloistName",
-    "typeOfMusic",
-    "concertPlace",
-  ];
+museumSchema.pre("save", function (next) {
+  const properties = ["name", "typeOfSubject", "museumPlace", "builtBy"];
+  console.log(this);
   for (element of properties) {
     const words = this[element].split(" "); // This is a middelware for database. It makes name and surname with uppercase for database.
     this[element] = words
@@ -76,6 +68,6 @@ concertSchema.pre("save", function (next) {
 
   next();
 });
-const Concert = model("Concert", concertSchema);
+const Museum = model("Museum", museumSchema);
 
-module.exports = Concert;
+module.exports = Museum;

@@ -1,26 +1,36 @@
 const { Schema, model } = require("mongoose");
 
-const concertSchema = new Schema(
+const theaterSchema = new Schema(
   {
     name: {
       type: String,
       unique: true,
-      required: [true, "Concert Name is required."],
+      required: [true, "Theater Name is required."],
+      trim: true,
+    },
+    actorsName: {
+      type: String,
+      required: [true, "Actors Name is required."],
+      trim: true,
+    },
+    directorName: {
+      type: String,
+      required: [true, "Director(s) Name is required."],
+      trim: true,
+    },
+    writerName: {
+      type: String,
+      required: [true, "Writer(s) Name is required."],
       trim: true,
     },
 
-    soloistName: {
+    typeOfTheater: {
       type: String,
-      required: [true, "Soloist Name is required."],
-      trim: true,
-    },
-    typeOfMusic: {
-      type: String,
-      required: [true, "Type of Music is required."],
+      required: [true, "Type of Theater is required."],
       trim: true,
     },
 
-    concertPlace: {
+    theaterPlace: {
       type: String,
       required: [true, "Place is required."],
       trim: true,
@@ -28,12 +38,11 @@ const concertSchema = new Schema(
     date: {
       type: Date,
       required: [true, "Date is required."],
-
       trim: true,
     },
     ageLimit: {
       type: Number,
-      required: [true, "Age limit is required."],
+      required: [true],
     },
     imageUrl: {
       type: String,
@@ -51,7 +60,7 @@ const concertSchema = new Schema(
     ],
     createdBy: {
       type: Schema.Types.ObjectId,
-      required: [true, "Author is required."],
+      required: true,
       ref: "User",
     },
   },
@@ -60,12 +69,14 @@ const concertSchema = new Schema(
   }
 );
 
-concertSchema.pre("save", function (next) {
+theaterSchema.pre("save", function (next) {
   const properties = [
     "name",
-    "soloistName",
-    "typeOfMusic",
-    "concertPlace",
+    "actorsName",
+    "directorName",
+    "writerName",
+    "typeOfTheater",
+    "theaterPlace",
   ];
   for (element of properties) {
     const words = this[element].split(" "); // This is a middelware for database. It makes name and surname with uppercase for database.
@@ -76,6 +87,7 @@ concertSchema.pre("save", function (next) {
 
   next();
 });
-const Concert = model("Concert", concertSchema);
 
-module.exports = Concert;
+const Theater = model("Theater", theaterSchema);
+
+module.exports = Theater;

@@ -1,120 +1,111 @@
 const express = require("express");
-const Concert = require("../models/Concert.model");
-const User = require("../models/User.model");
+const Museum = require("../models/Museum.model");
 const mongoose = require("mongoose");
 const uploader = require("../middelwares/cloudinary.config");
 const router = express.Router();
-const { isAuthenticated } = require("./../middelwares/jwt.midelware");
+const { isAuthenticated } = require("../middelwares/jwt.midelware");
+const User = require("../models/User.model");
 
-// Get all concerts
-router.get("/concerts", (req, res, next) => {
-  const concerts = Concert.find()
+// Get all museums
+router.get("/museums", (req, res, next) => {
+  const museums = Museum.find()
 
-    .then((concerts) => {
-      res.status(200).json(concerts);
+    .then((museums) => {
+      res.status(200).json(museums);
     })
     .catch((error) => {
       res
         .status(500)
-        .json({ message: "Internal Server Error During Concerts Retrival" });
+        .json({ message: "Internal Server Error During Museums Retrival" });
     });
 });
 
-router.get("/concerts/:concertId", (req, res, next) => {
-  const { concertId } = req.params;
+router.get("/museums/:museumId", (req, res, next) => {
+  const { museumId } = req.params;
 
-  if (!mongoose.Types.ObjectId.isValid(concertId)) {
+  if (!mongoose.Types.ObjectId.isValid(museumId)) {
     res.status(400).json({ message: "Specified id is not valid" });
     return;
   }
 
-  Concert.findById(concertId)
-    .then((concert) => res.status(200).json(concert))
+  Museum.findById(museumId)
+    .then((museum) => res.status(200).json(museum))
     .catch((error) =>
       res
         .status(500)
-        .json({ message: "Internal Server Error During Concert Retrival" })
+        .json({ message: "Internal Server Error During Museum Retrival" })
     );
 });
 
-// Update the concert
+// Update the museum
 router.put(
-  "/concerts/:id",
+  "/museums/:id",
   isAuthenticated,
   uploader.single("imageUrl"),
   async (req, res, next) => {
     const { id } = req.params;
-    const {
-      name,
-      soloistName,
-      typeOfMusic,
-      concertPlace,
-      date,
-      ageLimit,
-      review,
-    } = req.body;
+    const { name, typeOfSubject, museumPlace, builtBy, builtDate, review } =
+      req.body;
     if (!mongoose.Types.ObjectId.isValid(id)) {
       res.status(400).json({ message: "Specified id is not valid" });
       return;
     }
     let imageUrl;
-    const errorsOfUpdatedConcert = {};
+    const errorsOfUpdatedMuseum = {};
     try {
       if (req.file) {
+        console.log(req.file);
         imageUrl = req.file.path;
+        console.log(req.file.path);
       }
-      const updatedConcert = await Concert.findOneAndUpdate(
+      const updatedMuseum = await Museum.findOneAndUpdate(
         { _id: id },
         {
           name,
-          soloistName,
-          typeOfMusic,
-          concertPlace,
-          date,
-          ageLimit,
+          typeOfSubject,
+          museumPlace,
+          builtBy,
+          builtDate,
           review,
           imageUrl,
         },
         { new: true }
       );
 
-      res.status(200).json(updatedConcert);
+      res.status(200).json(updatedMuseum);
     } catch (err) {
-      console.log("Error occurs!!!");
-      console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
         //Object is a built in JS global object. This "Object.keys" is a global method which gives us property names of given object!
         // element = as cocertName, soloistName (field of model)
         // message is inside err.errors, so we can see it if the error occurs.
         Object.keys(err.errors).forEach((element) => {
-          errorsOfUpdatedConcert[element] = err.errors[element].message;
+          errorsOfUpdatedMuseum[element] = err.errors[element].message;
         });
-        res.status(400).json(errorsOfUpdatedConcert);
+        res.status(400).json(errorsOfUpdatedMuseum);
       } else {
-        errorsOfUpdatedConcert.message = "Internal server error occurs";
-        res.status(500).json(errorsOfUpdatedConcert);
+        errorsOfUpdatedMuseum.message = "Internal server error occurs";
+        res.status(500).json(errorsOfUpdatedMuseum);
       }
     }
   }
 );
-// Create a concert
+// Create a museum
 router.post(
-  "/concerts",
+  "/museums",
   isAuthenticated,
   uploader.single("imageUrl"),
   async (req, res, next) => {
     const {
       name,
-      soloistName,
-      typeOfMusic,
-      concertPlace,
-      date,
+      typeOfSubject,
+      museumPlace,
+      builtBy,
+      builtDate,
       review,
-      ageLimit,
       createdBy,
     } = req.body;
 
-    const errorsOfConcerts = {};
+    const errorsOfmuseums = {};
 
     try {
       let imageUrl;
@@ -122,24 +113,21 @@ router.post(
         imageUrl = req.file.path;
       }
 
-      // Create concert
-      const createdConcert = await Concert.create({
+      const createdMuseum = await Museum.create({
         name,
-        soloistName,
-        typeOfMusic,
-        concertPlace,
-        date,
-        ageLimit,
+        typeOfSubject,
+        museumPlace,
+        builtBy,
+        builtDate,
         imageUrl,
         review,
         createdBy,
       });
-      // Add created concert id to the User's events field
       await User.findByIdAndUpdate(createdBy, {
-        $push: { events: createdConcert._id },
+        $push: { events: createdMuseum._id },
       });
 
-      res.status(201).json(createdConcert);
+      res.status(201).json(createdMuseum);
     } catch (err) {
       console.log(err);
       if (err instanceof mongoose.Error.ValidationError) {
@@ -147,18 +135,18 @@ router.post(
         // element = as cocertName, soloistName (field of model)
         // message is inside err.errors, so we can see it if the error occurs.
         Object.keys(err.errors).forEach((element) => {
-          errorsOfConcerts[element] = err.errors[element].message;
+          errorsOfmuseums[element] = err.errors[element].message;
         });
-        res.status(400).json(errorsOfConcerts);
+        res.status(400).json(errorsOfmuseums);
       } else if (err.message) {
-        errorsOfConcerts.message = err.message;
-        errorsOfConcerts.detail = String(err);
-        res.status(500).json(errorsOfConcerts);
+        errorsOfmuseums.message = err.message;
+        errorsOfmuseums.detail = String(err);
+        res.status(500).json(errorsOfmuseums);
       } else {
-        errorsOfConcerts.message =
+        errorsOfmuseums.message =
           "Internal Server Error occurs during all events retrieval";
-        errorsOfConcerts.detail = String(err);
-        res.status(500).json(errorsOfConcerts);
+        errorsOfmuseums.detail = String(err);
+        res.status(500).json(errorsOfmuseums);
       }
     }
   }

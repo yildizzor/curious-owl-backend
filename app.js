@@ -27,6 +27,24 @@ app.use("/auth", authRoutes);
 const concertsRoutes = require("./routes/concerts.routes.js");
 app.use("/api", concertsRoutes);
 
+const theatersRoutes = require("./routes/theaters.routes.js");
+app.use("/api", theatersRoutes);
+
+const muesumsRoutes = require("./routes/museum.routes.js");
+app.use("/api", muesumsRoutes);
+
+const restaurantsRoutes = require("./routes/restaurant.routes.js");
+app.use("/api", restaurantsRoutes);
+
+const booksRoutes = require("./routes/book.routes.js");
+app.use("/api", booksRoutes);
+
+const eventsRoutes = require("./routes/event.routes.js");
+app.use("/api", eventsRoutes);
+
+const reviewRoutes = require("./routes/review.routes.js");
+app.use("/api", reviewRoutes);
+
 // ❗ To handle errors. Routes that don't exist or errors that you handle in specific routes
 require("./error-handling")(app);
 
