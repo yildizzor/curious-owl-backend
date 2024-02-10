@@ -32,8 +32,6 @@ const userSchema = new Schema(
 
     imageUrl: {
       type: String,
-      default:
-        "https://asset.cloudinary.com/dzlnruxct/524f4a99a046abd36aeadc32cfb63976",
     },
 
     country: String,
