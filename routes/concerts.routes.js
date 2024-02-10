@@ -31,8 +31,8 @@ router.get("/concerts/:concertId", (req, res, next) => {
   }
 
   Concert.findById(concertId)
-  .populate({ path: "eventReviews", populate: { path: "createdBy" } })
-  .populate("createdBy")
+    .populate({ path: "eventReviews", populate: { path: "createdBy" } })
+    .populate("createdBy")
     .then((concert) => res.status(200).json(concert))
     .catch((error) =>
       res
@@ -102,8 +102,7 @@ router.put(
   }
 );
 
-
-//route to get all reviews of a spesific book
+//route to get all reviews of a spesific concert
 router.get("/concerts/:concertId/reviews", async (req, res, next) => {
   const { concertId } = req.params;
   const error = {};
@@ -163,8 +162,6 @@ router.get("/concerts/:concertId/reviews/:reviewId", async (req, res, next) => {
     }
   }
 });
-
-
 
 // Create a concert
 router.post(

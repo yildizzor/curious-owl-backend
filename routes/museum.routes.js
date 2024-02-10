@@ -30,8 +30,8 @@ router.get("/museums/:museumId", (req, res, next) => {
   }
 
   Museum.findById(museumId)
-  .populate({ path: "eventReviews", populate: { path: "createdBy" } })
-  .populate("createdBy")
+    .populate({ path: "eventReviews", populate: { path: "createdBy" } })
+    .populate("createdBy")
     .then((museum) => res.status(200).json(museum))
     .catch((error) =>
       res
@@ -154,6 +154,67 @@ router.post(
     }
   }
 );
+
+//route to get all reviews of a spesific museum
+router.get("/museums/:museumId/reviews", async (req, res, next) => {
+  const { museumId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(museumId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  try {
+    const museum = await Museum.findById(museumId).populate({
+      path: "eventReviews",
+      populate: { path: "createdBy" },
+    });
+    res.status(200).json(museum.eventReviews);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
+
+router.get("/museums/:museumId/reviews/:reviewId", async (req, res, next) => {
+  const { museumId, reviewId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(muesumId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+    res.status(400).json({ message: "Specified review id is not valid" });
+    return;
+  }
+
+  try {
+    const review = await Review.findById(reviewId);
+    res.status(200).json(review);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
 
 // create a review to comment.
 router.post(

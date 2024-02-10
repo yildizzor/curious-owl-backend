@@ -176,6 +176,67 @@ router.post(
   }
 );
 
+//route to get all reviews of a spesific theater
+router.get("/theaters/:theaterId/reviews", async (req, res, next) => {
+  const { theaterId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  try {
+    const theater = await Theater.findById(theaterId).populate({
+      path: "eventReviews",
+      populate: { path: "createdBy" },
+    });
+    res.status(200).json(theater.eventReviews);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
+
+router.get("/theaters/:theaterId/reviews/:reviewId", async (req, res, next) => {
+  const { theaterId, reviewId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+    res.status(400).json({ message: "Specified review id is not valid" });
+    return;
+  }
+
+  try {
+    const review = await Review.findById(reviewId);
+    res.status(200).json(review);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
+
 // create a review to comment.
 router.post(
   "/theaters/:theatersId/reviews",

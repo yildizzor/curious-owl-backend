@@ -30,8 +30,8 @@ router.get("/restaurants/:restaurantId", (req, res, next) => {
   }
 
   Restaurant.findById(restaurantId)
-  .populate({ path: "eventReviews", populate: { path: "createdBy" } })
-  .populate("createdBy")
+    .populate({ path: "eventReviews", populate: { path: "createdBy" } })
+    .populate("createdBy")
     .then((restaurant) => res.status(200).json(restaurant))
     .catch((error) =>
       res
@@ -161,6 +161,70 @@ router.post(
           "Internal Server Error occurs during all events retrieval";
         errorsOfRestaurants.detail = String(err);
         res.status(500).json(errorsOfRestaurants);
+      }
+    }
+  }
+);
+
+//route to get all reviews of a spesific restaurant
+router.get("/restaurants/:restaurantId/reviews", async (req, res, next) => {
+  const { restaurantId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  try {
+    const restaurant = await Book.findById(restaurantId).populate({
+      path: "eventReviews",
+      populate: { path: "createdBy" },
+    });
+    res.status(200).json(restaurant.eventReviews);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
+
+router.get(
+  "/restaurants/:restaurantId/reviews/:reviewId",
+  async (req, res, next) => {
+    const { restaurantId, reviewId } = req.params;
+    const error = {};
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+      res.status(400).json({ message: "Specified review id is not valid" });
+      return;
+    }
+
+    try {
+      const review = await Review.findById(reviewId);
+      res.status(200).json(review);
+    } catch (err) {
+      if (err.message) {
+        error.message = err.message;
+        error.detail = String(err);
+        res.status(500).json(error);
+      } else {
+        error.message =
+          "Internal Server Error occurs during all events retrieval";
+        error.detail = String(err);
+        res.status(500).json(error);
       }
     }
   }
