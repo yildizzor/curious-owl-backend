@@ -166,6 +166,65 @@ router.post(
   }
 );
 
+// Delete a specific restaurant.
+router.delete(
+  "/restaurants/:restaurantId",
+  isAuthenticated,
+  async (req, res, next) => {
+    const { restaurantId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(restaurantId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    try {
+      const restaurant = await Restaurant.findByIdAndDelete(restaurantId);
+      if (restaurant) {
+        // Restaurant is successfully deleted, associated createdBy user of the Restaurant event should be removed
+        console.log(restaurant.createdBy);
+        await User.findByIdAndUpdate(restaurant.createdBy, {
+          $pull: { reviews: restaurant._id },
+        });
+
+        // Restaurant is successfully deleted, associated reviews
+        if (restaurant.eventReviews) {
+          console.log(
+            `There are event reviews and now they need to be deleted`
+          );
+          restaurant.eventReviews.forEach(async (reviewId) => {
+            const review = await Review.findByIdAndDelete(reviewId);
+            if (review) {
+              // Review should also be deleted from User Model document
+              await User.findByIdAndUpdate(review.createdBy, {
+                $pull: { reviews: review._id },
+              });
+            } else {
+              console.log(
+                `Document with id ${reviewId} is not found, maybe review doesn't exist or something goes wrong.`
+              );
+            }
+          });
+        }
+
+        res.status(200).json({ message: "Restaurant is succesfully deleted!" });
+      } else {
+        res
+          .status(400)
+          .json({ message: `Document with id ${restaurantId} is not found` });
+      }
+    } catch (err) {
+      if (err.message) {
+        res.status(500).json({ message: err.message, detail: String(err) });
+      } else {
+        const message =
+          "Internal Server Error occurs during restaurant deletion";
+        res.status(500).json({ message: message, detail: String(err) });
+      }
+    }
+  }
+);
+
 //route to get all reviews of a spesific restaurant
 router.get("/restaurants/:restaurantId/reviews", async (req, res, next) => {
   const { restaurantId } = req.params;

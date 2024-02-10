@@ -176,6 +176,65 @@ router.post(
   }
 );
 
+// Delete a specific theater.
+router.delete(
+  "/theaters/:theaterId",
+  isAuthenticated,
+  async (req, res, next) => {
+    const { theaterId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(theaterId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    try {
+      const theater = await Theater.findByIdAndDelete(theaterId);
+      if (theater) {
+        // Theater is successfully deleted, associated createdBy user of the Theater event should be removed
+        console.log(theater.createdBy);
+        await User.findByIdAndUpdate(theater.createdBy, {
+          $pull: { reviews: theater._id },
+        });
+
+        // Theater is successfully deleted, associated reviews
+        if (theater.eventReviews) {
+          console.log(
+            `There are event reviews and now they need to be deleted`
+          );
+          theater.eventReviews.forEach(async (reviewId) => {
+            const review = await Review.findByIdAndDelete(reviewId);
+            if (review) {
+              // Review should also be deleted from User Model document
+              await User.findByIdAndUpdate(review.createdBy, {
+                $pull: { reviews: review._id },
+              });
+            } else {
+              console.log(
+                `Document with id ${reviewId} is not found, maybe review doesn't exist or something goes wrong.`
+              );
+            }
+          });
+        }
+
+        res.status(200).json({ message: "Theater is succesfully deleted!" });
+      } else {
+        res
+          .status(400)
+          .json({ message: `Document with id ${theaterId} is not found` });
+      }
+    } catch (err) {
+      if (err.message) {
+        res.status(500).json({ message: err.message, detail: String(err) });
+      } else {
+        const message =
+          "Internal Server Error occurs during theater deletion";
+        res.status(500).json({ message: message, detail: String(err) });
+      }
+    }
+  }
+);
+
 //route to get all reviews of a spesific theater
 router.get("/theaters/:theaterId/reviews", async (req, res, next) => {
   const { theaterId } = req.params;
@@ -256,7 +315,7 @@ router.post(
       const review = await Review.create({ ...req.body, event: theatersId });
       review.populate("createdBy");
       console.log(review);
-      await Theaters.findByIdAndUpdate(theatersId, {
+      await Theater.findByIdAndUpdate(theatersId, {
         $push: { eventReviews: review._id },
       });
 

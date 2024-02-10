@@ -102,67 +102,6 @@ router.put(
   }
 );
 
-//route to get all reviews of a spesific concert
-router.get("/concerts/:concertId/reviews", async (req, res, next) => {
-  const { concertId } = req.params;
-  const error = {};
-
-  if (!mongoose.Types.ObjectId.isValid(concertId)) {
-    res.status(400).json({ message: "Specified id is not valid" });
-    return;
-  }
-
-  try {
-    const concert = await Concert.findById(concertId).populate({
-      path: "eventReviews",
-      populate: { path: "createdBy" },
-    });
-    res.status(200).json(concert.eventReviews);
-  } catch (err) {
-    if (err.message) {
-      error.message = err.message;
-      error.detail = String(err);
-      res.status(500).json(error);
-    } else {
-      error.message =
-        "Internal Server Error occurs during all events retrieval";
-      error.detail = String(err);
-      res.status(500).json(error);
-    }
-  }
-});
-
-router.get("/concerts/:concertId/reviews/:reviewId", async (req, res, next) => {
-  const { concertId, reviewId } = req.params;
-  const error = {};
-
-  if (!mongoose.Types.ObjectId.isValid(concertId)) {
-    res.status(400).json({ message: "Specified id is not valid" });
-    return;
-  }
-
-  if (!mongoose.Types.ObjectId.isValid(reviewId)) {
-    res.status(400).json({ message: "Specified review id is not valid" });
-    return;
-  }
-
-  try {
-    const review = await Review.findById(reviewId);
-    res.status(200).json(review);
-  } catch (err) {
-    if (err.message) {
-      error.message = err.message;
-      error.detail = String(err);
-      res.status(500).json(error);
-    } else {
-      error.message =
-        "Internal Server Error occurs during all events retrieval";
-      error.detail = String(err);
-      res.status(500).json(error);
-    }
-  }
-});
-
 // Create a concert
 router.post(
   "/concerts",
@@ -229,6 +168,125 @@ router.post(
     }
   }
 );
+
+// Delete a specific concert.
+router.delete(
+  "/concerts/:concertId",
+  isAuthenticated,
+  async (req, res, next) => {
+    const { concertId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(concertId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    try {
+      const concert = await Concert.findByIdAndDelete(concertId);
+      if (concert) {
+        // Concert is successfully deleted, associated createdBy user of the Concert event should be removed
+        console.log(concert.createdBy);
+        await User.findByIdAndUpdate(concert.createdBy, {
+          $pull: { reviews: concert._id },
+        });
+
+        // Concert is successfully deleted, associated reviews
+        if (concert.eventReviews) {
+          console.log(
+            `There are event reviews and now they need to be deleted`
+          );
+          concert.eventReviews.forEach(async (reviewId) => {
+            const review = await Review.findByIdAndDelete(reviewId);
+            if (review) {
+              // Review should also be deleted from User Model document
+              await User.findByIdAndUpdate(review.createdBy, {
+                $pull: { reviews: review._id },
+              });
+            } else {
+              console.log(
+                `Document with id ${reviewId} is not found, maybe review doesn't exist or something goes wrong.`
+              );
+            }
+          });
+        }
+
+        res.status(200).json({ message: "Concert is succesfully deleted!" });
+      } else {
+        res
+          .status(400)
+          .json({ message: `Document with id ${concertId} is not found` });
+      }
+    } catch (err) {
+      if (err.message) {
+        res.status(500).json({ message: err.message, detail: String(err) });
+      } else {
+        const message = "Internal Server Error occurs during concert deletion";
+        res.status(500).json({ message: message, detail: String(err) });
+      }
+    }
+  }
+);
+
+//route to get all reviews of a spesific concert
+router.get("/concerts/:concertId/reviews", async (req, res, next) => {
+  const { concertId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(concertId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  try {
+    const concert = await Concert.findById(concertId).populate({
+      path: "eventReviews",
+      populate: { path: "createdBy" },
+    });
+    res.status(200).json(concert.eventReviews);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
+
+router.get("/concerts/:concertId/reviews/:reviewId", async (req, res, next) => {
+  const { concertId, reviewId } = req.params;
+  const error = {};
+
+  if (!mongoose.Types.ObjectId.isValid(concertId)) {
+    res.status(400).json({ message: "Specified id is not valid" });
+    return;
+  }
+
+  if (!mongoose.Types.ObjectId.isValid(reviewId)) {
+    res.status(400).json({ message: "Specified review id is not valid" });
+    return;
+  }
+
+  try {
+    const review = await Review.findById(reviewId);
+    res.status(200).json(review);
+  } catch (err) {
+    if (err.message) {
+      error.message = err.message;
+      error.detail = String(err);
+      res.status(500).json(error);
+    } else {
+      error.message =
+        "Internal Server Error occurs during all events retrieval";
+      error.detail = String(err);
+      res.status(500).json(error);
+    }
+  }
+});
 
 // create a review to comment.
 router.post(
@@ -372,7 +430,7 @@ router.delete(
           .json({ message: `Document with id ${reviewId} is not found` });
       }
     } catch (err) {
-      console.log(err)
+      console.log(err);
       if (err.message) {
         errorsOfReview.message = err.message;
         errorsOfReview.detail = String(err);

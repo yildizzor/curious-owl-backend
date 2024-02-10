@@ -155,6 +155,64 @@ router.post(
   }
 );
 
+// Delete a specific museum.
+router.delete(
+  "/museums/:museumId",
+  isAuthenticated,
+  async (req, res, next) => {
+    const { museumId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(museumId)) {
+      res.status(400).json({ message: "Specified id is not valid" });
+      return;
+    }
+
+    try {
+      const museum = await Museum.findByIdAndDelete(museumId);
+      if (museum) {
+        // Museum is successfully deleted, associated createdBy user of the Museum event should be removed
+        console.log(museum.createdBy);
+        await User.findByIdAndUpdate(museum.createdBy, {
+          $pull: { reviews: museum._id },
+        });
+
+        // Museum is successfully deleted, associated reviews
+        if (museum.eventReviews) {
+          console.log(
+            `There are event reviews and now they need to be deleted`
+          );
+          museum.eventReviews.forEach(async (reviewId) => {
+            const review = await Review.findByIdAndDelete(reviewId);
+            if (review) {
+              // Review should also be deleted from User Model document
+              await User.findByIdAndUpdate(review.createdBy, {
+                $pull: { reviews: review._id },
+              });
+            } else {
+              console.log(
+                `Document with id ${reviewId} is not found, maybe review doesn't exist or something goes wrong.`
+              );
+            }
+          });
+        }
+
+        res.status(200).json({ message: "Museum is succesfully deleted!" });
+      } else {
+        res
+          .status(400)
+          .json({ message: `Document with id ${museumId} is not found` });
+      }
+    } catch (err) {
+      if (err.message) {
+        res.status(500).json({ message: err.message, detail: String(err) });
+      } else {
+        const message = "Internal Server Error occurs during museum deletion";
+        res.status(500).json({ message: message, detail: String(err) });
+      }
+    }
+  }
+);
+
 //route to get all reviews of a spesific museum
 router.get("/museums/:museumId/reviews", async (req, res, next) => {
   const { museumId } = req.params;
