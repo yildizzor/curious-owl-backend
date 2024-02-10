@@ -177,7 +177,7 @@ router.get("/restaurants/:restaurantId/reviews", async (req, res, next) => {
   }
 
   try {
-    const restaurant = await Book.findById(restaurantId).populate({
+    const restaurant = await Restaurant.findById(restaurantId).populate({
       path: "eventReviews",
       populate: { path: "createdBy" },
     });

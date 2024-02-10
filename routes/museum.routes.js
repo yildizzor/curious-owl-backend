@@ -343,7 +343,7 @@ router.delete(
       const review = await Review.findByIdAndDelete(reviewId);
       if (review) {
         // Review is successfully deleted, now review id should be deleted from associated event
-        await Book.findByIdAndUpdate(museumId, {
+        await Museum.findByIdAndUpdate(museumId, {
           $pull: { eventReviews: review._id },
         });
         // Review should also be deleted from User Model document

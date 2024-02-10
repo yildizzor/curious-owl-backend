@@ -357,7 +357,7 @@ router.delete(
       const review = await Review.findByIdAndDelete(reviewId);
       if (review) {
         // Review is successfully deleted, now review id should be deleted from associated event
-        await Book.findByIdAndUpdate(concertId, {
+        await Concert.findByIdAndUpdate(concertId, {
           $pull: { eventReviews: review._id },
         });
         // Review should also be deleted from User Model document
@@ -372,6 +372,7 @@ router.delete(
           .json({ message: `Document with id ${reviewId} is not found` });
       }
     } catch (err) {
+      console.log(err)
       if (err.message) {
         errorsOfReview.message = err.message;
         errorsOfReview.detail = String(err);
